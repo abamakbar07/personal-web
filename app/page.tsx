@@ -4,7 +4,7 @@ export default function Page() {
   return (
     <section>
       <h1 className="mb-8 text-2xl font-semibold tracking-tighter">
-        Muhamad Akbar Afriansyah - Portfolio
+        Muhamad Akbar Afriansyah
       </h1>
       <p className="mb-4">
         {`Hey there! I'm Akbar, a tech enthusiast and SAP Admin based in Bogor, Indonesia. I geek out on all things back-end development, cloud tech, and data analysis. With a solid background in Computer Systems Networking and Telecommunications, I've got the skills to build cool stuff—from full-stack web apps to seamless integrations.`}
@@ -16,6 +16,9 @@ export default function Page() {
         {`When I'm not working, you’ll find me building social media apps with NextJS, dreaming up creative projects, or diving into philosophical rabbit holes. I'm all about creating tech that makes life better—and having a little fun while doing it!`}
       </p>
       <div className="my-8">
+        <h3 className="mb-8 text-2xl font-semibold tracking-tighter">
+          Blogposts
+        </h3>
         <BlogPosts />
       </div>
     </section>
