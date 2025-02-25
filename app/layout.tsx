@@ -11,16 +11,16 @@ import { baseUrl } from './sitemap'
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: 'Next.js Portfolio Starter',
-    template: '%s | Next.js Portfolio Starter',
+    default: 'Akbar Afriansyah | Developer & Tech Enthusiast',
+    template: '%s | Akbar Afriansyah',
   },
-  description: 'This is my portfolio.',
+  description: 'Portofolio resmi Akbar Afriansyah, seorang Full-Stack Developer yang fokus pada solusi berbasis teknologi AI, data, dan cloud.',
   openGraph: {
-    title: 'My Portfolio',
-    description: 'This is my portfolio.',
+    title: 'Akbar Afriansyah | Developer & Tech Enthusiast',
+    description: 'Jelajahi proyek dan pengalaman Akbar Afriansyah dalam pengembangan perangkat lunak, data engineering, dan teknologi berbasis cloud.',
     url: baseUrl,
-    siteName: 'My Portfolio',
-    locale: 'en_US',
+    siteName: 'Akbar Afriansyah | Portfolio',
+    locale: 'id_ID',
     type: 'website',
   },
   robots: {
