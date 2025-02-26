@@ -5,7 +5,26 @@ const API_KEY = process.env.LLAMA_API_KEY;
 
 export async function POST(req: Request) {
   try {
-    const { message } = await req.json();
+    const { message, history } = await req.json();
+
+    // Prepare conversation history for the API
+    const messages = [
+      // System message to set the context
+      {
+        role: 'system',
+        content: 'You are a helpful AI assistant on Akbar Afriansyah\'s portfolio website. You can help visitors learn about Akbar\'s work, experience, and skills. Be friendly and professional.'
+      },
+      // Include previous messages for context
+      ...history.map((msg: { role: string; content: string }) => ({
+        role: msg.role,
+        content: msg.content
+      })),
+      // Add the new message
+      {
+        role: 'user',
+        content: message
+      }
+    ];
 
     const response = await fetch(API_URL, {
       method: 'POST',
@@ -15,12 +34,7 @@ export async function POST(req: Request) {
       },
       body: JSON.stringify({
         model: 'meta-llama/Llama-3.3-70B-Instruct',
-        messages: [
-          {
-            role: 'user',
-            content: message
-          }
-        ],
+        messages,
         max_tokens: 512,
         temperature: 0.7,
         top_p: 0.9,

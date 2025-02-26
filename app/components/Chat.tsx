@@ -48,12 +48,21 @@ export default function Chat() {
     setChatHistory(prev => [...prev, userMessage]);
 
     try {
+      // Prepare conversation history (excluding timestamps for API)
+      const messageHistory = chatHistory.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ 
+          message,
+          history: messageHistory 
+        }),
       });
 
       if (!response.ok) {
@@ -69,7 +78,13 @@ export default function Chat() {
       setChatHistory(prev => [...prev, botMessage]);
     } catch (error) {
       console.error('Error:', error);
-      // Optionally show an error message to the user
+      // Add error message to chat
+      const errorMessage: ChatMessage = {
+        role: 'system',
+        content: 'Sorry, I encountered an error. Please try again.',
+        timestamp: Date.now()
+      };
+      setChatHistory(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
       setMessage('');
