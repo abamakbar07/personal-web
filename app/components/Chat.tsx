@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { chatStorage } from '../utils/chatStorage';
 
 interface ChatMessage {
@@ -16,6 +16,8 @@ export default function Chat() {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // Check if device is mobile
   useEffect(() => {
@@ -46,6 +48,24 @@ export default function Chat() {
       chatStorage.save(chatHistory);
     }
   }, [chatHistory, isInitialized]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        chatContainerRef.current && 
+        !chatContainerRef.current.contains(event.target as Node) &&
+        isOpen &&
+        !isFullscreen
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, isFullscreen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,22 +162,23 @@ export default function Chat() {
       </button>
 
       <div
+        ref={chatContainerRef}
         className={`fixed ${
           isFullscreen && isOpen
             ? 'inset-0 rounded-none'
             : 'bottom-20 right-4 w-full max-w-sm md:max-w-md rounded-lg'
-        } bg-white dark:bg-black shadow-xl transition-all duration-300 transform ${
+        } bg-white dark:bg-neutral-900 shadow-xl transition-all duration-300 transform ${
           isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'
-        } z-40`}
+        } z-40 border border-neutral-200 dark:border-neutral-800`}
       >
         <div className={`flex flex-col ${isFullscreen ? 'h-screen' : 'h-[600px] max-h-[80vh]'}`}>
-          <div className="p-4 border-b dark:border-neutral-800 flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Chat with AI</h3>
+          <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Chat with AI</h3>
             <div className="flex gap-2">
               {chatHistory && chatHistory.length > 0 && (
                 <button
                   onClick={handleClearChat}
-                  className="text-sm text-red-500 hover:text-red-600"
+                  className="text-sm text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
                 >
                   Clear Chat
                 </button>
@@ -165,7 +186,7 @@ export default function Chat() {
               {isFullscreen && (
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="text-sm text-gray-500 hover:text-gray-600"
+                  className="text-sm text-neutral-500 hover:text-neutral-600 dark:text-neutral-400 dark:hover:text-neutral-300"
                 >
                   Close
                 </button>
@@ -185,7 +206,7 @@ export default function Chat() {
                   className={`max-w-[80%] rounded-lg px-4 py-2 ${
                     msg.role === 'user'
                       ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 dark:bg-neutral-800'
+                      : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100'
                   }`}
                 >
                   {msg.content}
@@ -194,30 +215,30 @@ export default function Chat() {
             ))}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-gray-100 dark:bg-neutral-800 rounded-lg px-4 py-2">
+                <div className="bg-neutral-100 dark:bg-neutral-800 rounded-lg px-4 py-2">
                   <div className="flex space-x-2">
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-100"></div>
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-200"></div>
+                    <div className="w-2 h-2 bg-neutral-400 dark:bg-neutral-500 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-neutral-400 dark:bg-neutral-500 rounded-full animate-bounce delay-100"></div>
+                    <div className="w-2 h-2 bg-neutral-400 dark:bg-neutral-500 rounded-full animate-bounce delay-200"></div>
                   </div>
                 </div>
               </div>
             )}
           </div>
 
-          <form onSubmit={handleSubmit} className="p-4 border-t dark:border-neutral-800">
+          <form onSubmit={handleSubmit} className="p-4 border-t border-neutral-200 dark:border-neutral-800">
             <div className="flex gap-2">
               <input
                 type="text"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Type your message..."
-                className="flex-1 p-2 border rounded dark:bg-neutral-900 dark:border-neutral-800"
+                className="flex-1 p-2 border rounded bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100 placeholder-neutral-500 dark:placeholder-neutral-400"
               />
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Send
               </button>
