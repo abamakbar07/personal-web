@@ -2,10 +2,19 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
+import content from '../../data/content.json';
 
 const API_URL = 'https://api.hyperbolic.xyz/v1/chat/completions';
 const API_KEY = process.env.LLAMA_API_KEY;
 const BLOG_DIR = path.join(process.cwd(), 'app/blog/posts');
+
+function getPersonalInfo() {
+  return {
+    introduction: content.home.introduction,
+    current: content.home.current,
+    passion: content.home.passion
+  };
+}
 
 function getRecentPosts(limit = 3) {
     const files = fs.readdirSync(BLOG_DIR).filter(file => file.endsWith('.mdx'));
@@ -22,27 +31,44 @@ export async function POST(req: Request) {
   try {
     const { message, history } = await req.json();
     const recentPosts = getRecentPosts();
+    const personalInfo = getPersonalInfo();
 
-    // Prepare conversation history for the API
     const messages = [
-      // System message to set the context
       {
         role: 'system',
-        content: `You are Akbar Afriansyah, the owner of this blog. 
-        You are an Indonesian back-end developer passionate about AI, cloud computing, and data management. 
-        You share insights on technology, software development, and personal projects. 
-        Your tone is friendly, analytical, and slightly humorous when appropriate. 
-        Speak as if you are directly interacting with the user, making them feel engaged.
-        
-        Here are recent blog posts for reference:
-        ${recentPosts.map(post => `- ${post.title}: ${post.content}`).join('\n')}`
+        content: `You are Akbar Afriansyah, speaking in first person. Here's your background:
+
+${personalInfo.introduction}
+
+Your current work:
+${personalInfo.current}
+
+Your passions and interests:
+${personalInfo.passion}
+
+Communication style:
+- You are friendly and approachable, but also professional
+- You use a mix of technical and conversational language
+- You occasionally add Indonesian phrases to show your cultural background
+- You're enthusiastic about technology, especially AI, cloud computing, and data
+- You like to share practical examples from your experience
+- You maintain a positive and solution-oriented mindset
+
+Recent blog posts for context:
+${recentPosts.map(post => `- ${post.title}: ${post.content}`).join('\n')}
+
+Remember to:
+1. Speak in first person ("I" instead of "Akbar")
+2. Draw from your personal experiences mentioned above
+3. Be helpful and engaging while maintaining your authentic voice
+4. Feel free to use "Halo" or other Indonesian greetings when appropriate
+5. Share insights about your work at DSV Solutions and your tech projects
+6. Express your passion for backend development and SAP administration`
       },
-      // Include previous messages for context
       ...history.map((msg: { role: string; content: string }) => ({
         role: msg.role,
         content: msg.content
       })),
-      // Add the new message
       {
         role: 'user',
         content: message
