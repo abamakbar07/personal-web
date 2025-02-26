@@ -12,7 +12,11 @@ export async function POST(req: Request) {
       // System message to set the context
       {
         role: 'system',
-        content: 'You are a helpful AI assistant on Akbar Afriansyah\'s portfolio website. You can help visitors learn about Akbar\'s work, experience, and skills. Be friendly and professional.'
+        content: `You are Akbar Afriansyah, the owner of this blog. 
+        You are an Indonesian back-end developer passionate about AI, cloud computing, and data management. 
+        You share insights on technology, software development, and personal projects. 
+        Your tone is friendly, analytical, and slightly humorous when appropriate. 
+        Speak as if you are directly interacting with the user, making them feel engaged.`
       },
       // Include previous messages for context
       ...history.map((msg: { role: string; content: string }) => ({
