@@ -11,10 +11,22 @@ interface ChatMessage {
 
 export default function Chat() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [message, setMessage] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+
+  // Check if device is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsFullscreen(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Load chat history on component mount
   useEffect(() => {
@@ -37,18 +49,21 @@ export default function Chat() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim()) return;
+    const trimmedMessage = message.trim();
+    if (!trimmedMessage) return;
 
+    // Clear input immediately
+    setMessage('');
+    
     setIsLoading(true);
     const userMessage: ChatMessage = { 
       role: 'user', 
-      content: message,
+      content: trimmedMessage,
       timestamp: Date.now()
     };
     setChatHistory(prev => [...prev, userMessage]);
 
     try {
-      // Prepare conversation history (excluding timestamps for API)
       const messageHistory = chatHistory.map(msg => ({
         role: msg.role,
         content: msg.content
@@ -60,7 +75,7 @@ export default function Chat() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          message,
+          message: trimmedMessage,
           history: messageHistory 
         }),
       });
@@ -78,7 +93,6 @@ export default function Chat() {
       setChatHistory(prev => [...prev, botMessage]);
     } catch (error) {
       console.error('Error:', error);
-      // Add error message to chat
       const errorMessage: ChatMessage = {
         role: 'system',
         content: 'Sorry, I encountered an error. Please try again.',
@@ -87,7 +101,6 @@ export default function Chat() {
       setChatHistory(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
-      setMessage('');
     }
   };
 
@@ -98,10 +111,11 @@ export default function Chat() {
 
   return (
     <>
-      {/* Chat Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-4 right-4 bg-blue-500 text-white p-4 rounded-full shadow-lg hover:bg-blue-600 transition-all z-50"
+        className={`fixed bottom-4 right-4 bg-blue-500 text-white p-4 rounded-full shadow-lg hover:bg-blue-600 transition-all z-50 ${
+          isOpen && isFullscreen ? 'hidden' : ''
+        }`}
       >
         <svg
           className="w-6 h-6"
@@ -127,27 +141,38 @@ export default function Chat() {
         </svg>
       </button>
 
-      {/* Chat Window */}
       <div
-        className={`fixed bottom-20 right-4 w-full max-w-sm bg-white dark:bg-black shadow-xl rounded-lg transition-all duration-300 transform ${
+        className={`fixed ${
+          isFullscreen && isOpen
+            ? 'inset-0 rounded-none'
+            : 'bottom-20 right-4 w-full max-w-sm md:max-w-md rounded-lg'
+        } bg-white dark:bg-black shadow-xl transition-all duration-300 transform ${
           isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'
-        } z-40 md:max-w-md`}
+        } z-40`}
       >
-        <div className="flex flex-col h-[600px] max-h-[80vh]">
-          {/* Chat Header */}
+        <div className={`flex flex-col ${isFullscreen ? 'h-screen' : 'h-[600px] max-h-[80vh]'}`}>
           <div className="p-4 border-b dark:border-neutral-800 flex justify-between items-center">
             <h3 className="text-lg font-semibold">Chat with AI</h3>
-            {chatHistory && chatHistory.length > 0 && (
-              <button
-                onClick={handleClearChat}
-                className="text-sm text-red-500 hover:text-red-600"
-              >
-                Clear Chat
-              </button>
-            )}
+            <div className="flex gap-2">
+              {chatHistory && chatHistory.length > 0 && (
+                <button
+                  onClick={handleClearChat}
+                  className="text-sm text-red-500 hover:text-red-600"
+                >
+                  Clear Chat
+                </button>
+              )}
+              {isFullscreen && (
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="text-sm text-gray-500 hover:text-gray-600"
+                >
+                  Close
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Chat Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {chatHistory && chatHistory.map((msg) => (
               <div
@@ -180,7 +205,6 @@ export default function Chat() {
             )}
           </div>
 
-          {/* Chat Input */}
           <form onSubmit={handleSubmit} className="p-4 border-t dark:border-neutral-800">
             <div className="flex gap-2">
               <input

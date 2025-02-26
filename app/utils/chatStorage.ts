@@ -34,13 +34,13 @@ export const chatStorage = {
       
       // Check if data has the expected structure
       if (!parsedData.messages || !parsedData.expiryTime) {
-        this.clear();
+        chatStorage.clear();
         return [];
       }
 
       // Clear chat if expired
       if (Date.now() > parsedData.expiryTime) {
-        this.clear();
+        chatStorage.clear();
         return [];
       }
 
