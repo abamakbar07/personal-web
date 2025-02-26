@@ -170,8 +170,9 @@ export default function Chat() {
         } bg-white dark:bg-neutral-900 shadow-xl transition-all duration-300 transform ${
           isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'
         } z-40 border border-neutral-200 dark:border-neutral-800`}
+        style={{ maxHeight: isFullscreen ? '100vh' : '80vh' }}
       >
-        <div className={`flex flex-col ${isFullscreen ? 'h-screen' : 'h-[600px] max-h-[80vh]'}`}>
+        <div className="flex flex-col h-full">
           <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center">
             <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Chat with AI</h3>
             <div className="flex gap-2">
@@ -194,7 +195,7 @@ export default function Chat() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
             {chatHistory && chatHistory.map((msg) => (
               <div
                 key={msg.timestamp}
@@ -226,7 +227,7 @@ export default function Chat() {
             )}
           </div>
 
-          <form onSubmit={handleSubmit} className="p-4 border-t border-neutral-200 dark:border-neutral-800">
+          <form onSubmit={handleSubmit} className="p-4 border-t border-neutral-200 dark:border-neutral-800 mt-auto">
             <div className="flex gap-2">
               <input
                 type="text"
