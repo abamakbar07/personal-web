@@ -7,6 +7,7 @@ import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import Footer from './components/footer'
 import { baseUrl } from './sitemap'
+import Chat from './components/Chat'
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
@@ -60,6 +61,7 @@ export default function RootLayout({
           <Navbar />
           {children}
           <Footer />
+          <Chat />
           <Analytics />
           <SpeedInsights />
         </main>
