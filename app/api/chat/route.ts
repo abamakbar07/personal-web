@@ -105,7 +105,7 @@ export async function POST(req: Request) {
         Authorization: `Bearer ${API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'meta-llama/Llama-3.3-70B-Instruct',
+        model: 'meta-llama/Llama-3.2-3B-Instruct',
         messages,
         max_tokens: 512,
         temperature: 0.7,
