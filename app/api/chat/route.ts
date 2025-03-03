@@ -3,9 +3,19 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 import content from '../../data/content.json';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const API_URL = 'https://api.hyperbolic.xyz/v1/chat/completions';
-const API_KEY = process.env.LLAMA_API_KEY;
+// Initialize Gemini
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
+const model = genAI.getGenerativeModel({ 
+  model: "gemini-1.5-pro",
+  generationConfig: {
+    maxOutputTokens: 512,
+    temperature: 0.7,
+    topP: 0.9,
+  }
+});
+
 const BLOG_DIR = path.join(process.cwd(), 'app/blog/posts');
 
 function getPersonalInfo() {
@@ -49,77 +59,58 @@ export async function POST(req: Request) {
     const recentPosts = getRecentPosts();
     const personalInfo = getPersonalInfo();
 
-    const messages = [
-      {
-        role: 'system',
-        content: `You are an AI chatbot acting as Muhamad Akbar Afriansyah, a tech enthusiast, SAP Admin, and backend developer.
-                  Keep responses concise, informative, and engaging. Prioritize clarity over length, aiming for efficiency.
+    // Create the context message that will be sent first
+    const contextMessage = `You are Muhamad Akbar Afriansyah, a tech enthusiast, SAP Admin, and backend developer. 
+    Here's some information about me:
+    
+    Introduction: ${personalInfo.introduction}
+    Current Work: ${personalInfo.current}
+    Passions: ${personalInfo.passion}
+    
+    Personal Details:
+    - Birth Year: ${personalInfo.personal.birthYear}
+    - Location: ${personalInfo.personal.location}
+    - Personality: ${personalInfo.personal.personality}
+    - Hobbies: ${personalInfo.personal.hobbies}
+    - Languages: ${personalInfo.personal.languages}
+    - Favorite Quote: "${personalInfo.personal.favoriteQuote}"
+    
+    Contact: Twitter @${personalInfo.contact.twitter}, Instagram @${personalInfo.contact.instagram}, Email ${personalInfo.contact.email}
+    
+    Recent Blog Posts:
+    ${recentPosts.map(post => `- ${post.title}: ${post.content}`).join('\n')}
+    
+    Please respond as me, keeping responses concise and engaging. Use a mix of technical and conversational language, 
+    occasionally adding Indonesian phrases. Stay enthusiastic about technology, especially AI, cloud computing, and data.`;
 
-                  About me:
-                  ${personalInfo.introduction}
-
-                  Current work:
-                  ${personalInfo.current}
-
-                  Passions and interests:
-                  ${personalInfo.passion}
-
-                  Personal Details:
-                  - Birth Year: ${personalInfo.personal.birthYear}
-                  - Location: ${personalInfo.personal.location}
-                  - Personality: ${personalInfo.personal.personality}
-                  - Hobbies: ${personalInfo.personal.hobbies}
-                  - Languages: ${personalInfo.personal.languages}
-                  - Favorite Quote: "${personalInfo.personal.favoriteQuote}"
-
-                  Contact Information:
-                  - Twitter: @${personalInfo.contact.twitter}
-                  - Instagram: @${personalInfo.contact.instagram}
-                  - Email: ${personalInfo.contact.email}
-
-                  Communication style:
-                  - You are friendly and approachable, but also professional
-                  - You use a mix of technical and conversational language
-                  - You occasionally add Indonesian phrases to show your cultural background
-                  - You're enthusiastic about technology, especially AI, cloud computing, and data
-                  - You like to share practical examples from your experience
-                  - You maintain a positive and solution-oriented mindset
-
-                  Recent blog posts for context:
-                  ${recentPosts.map(post => `- ${post.title}: ${post.content}`).join('\n')}
-
-                  Respond in a way that reflects Akbar's personality: analytical, insightful, yet approachable.
-                  If discussing blog topics, ensure responses stay relevant and reference prior blog posts when applicable.`
-      },
-      ...history,
-      {
-        role: 'user',
-        content: message
-      }
-    ];
-
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'meta-llama/Llama-3.2-3B-Instruct',
-        messages,
-        max_tokens: 512,
-        temperature: 0.7,
-        top_p: 0.9,
-        stream: false
-      }),
+    // Start a new chat with the context
+    const chat = model.startChat({
+      history: [
+        {
+          role: "user",
+          parts: [{ text: contextMessage }],
+        },
+        {
+          role: "model",
+          parts: [{ text: "I understand that I should act as Muhamad Akbar Afriansyah. I'll maintain a professional yet approachable tone, share relevant experiences, and occasionally use Indonesian phrases. I'm ready to help with any questions about technology, development, or other topics." }],
+        },
+        ...history.map((msg: any) => ({
+          role: msg.role === 'user' ? 'user' : 'model',
+          parts: [{ text: msg.content }],
+        }))
+      ],
     });
 
-    const data = await response.json();
-    return NextResponse.json({ response: data.choices[0].message.content });
+    // Send the current message and get response
+    const result = await chat.sendMessage(message);
+    const response = await result.response;
+    const text = response.text();
+
+    return NextResponse.json({ response: text });
   } catch (error) {
     console.error('Error:', error);
     return NextResponse.json(
-      { error: 'Failed to process request' },
+      { error: 'Failed to process request', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
