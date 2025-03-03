@@ -166,14 +166,17 @@ export default function Chat() {
         className={`fixed ${
           isFullscreen && isOpen
             ? 'inset-0 rounded-none'
-            : 'bottom-20 right-4 w-full max-w-sm md:max-w-md rounded-lg'
+            : 'bottom-24 right-4 w-full max-w-sm md:max-w-md rounded-lg'
         } bg-white dark:bg-neutral-900 shadow-xl transition-all duration-300 transform ${
           isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'
-        } z-40 border border-neutral-200 dark:border-neutral-800`}
-        style={{ maxHeight: isFullscreen ? '100vh' : '80vh' }}
+        } z-40 border border-neutral-200 dark:border-neutral-800 overflow-hidden`}
+        style={{ 
+          maxHeight: isFullscreen ? '100vh' : 'calc(80vh - 5rem)',
+          height: isFullscreen ? '100%' : 'calc(80vh - 5rem)'
+        }}
       >
         <div className="flex flex-col h-full">
-          <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center">
+          <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-white dark:bg-neutral-900 z-10">
             <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Chat with AI</h3>
             <div className="flex gap-2">
               {chatHistory && chatHistory.length > 0 && (
@@ -195,39 +198,43 @@ export default function Chat() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
-            {chatHistory && chatHistory.map((msg) => (
-              <div
-                key={msg.timestamp}
-                className={`flex ${
-                  msg.role === 'user' ? 'justify-end' : 'justify-start'
-                }`}
-              >
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+            <div className="flex flex-col space-y-4">
+              {chatHistory && chatHistory.map((msg) => (
                 <div
-                  className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                    msg.role === 'user'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100'
-                  }`}
+                  key={msg.timestamp}
+                  className={`flex ${
+                    msg.role === 'user' ? 'justify-end' : 'justify-start'
+                  } w-full`}
                 >
-                  {msg.content}
-                </div>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-neutral-100 dark:bg-neutral-800 rounded-lg px-4 py-2">
-                  <div className="flex space-x-2">
-                    <div className="w-2 h-2 bg-neutral-400 dark:bg-neutral-500 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-neutral-400 dark:bg-neutral-500 rounded-full animate-bounce delay-100"></div>
-                    <div className="w-2 h-2 bg-neutral-400 dark:bg-neutral-500 rounded-full animate-bounce delay-200"></div>
+                  <div
+                    className={`max-w-[80%] rounded-lg px-4 py-2 break-words ${
+                      msg.role === 'user'
+                        ? 'bg-blue-500 text-white'
+                        : msg.role === 'system'
+                        ? 'bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100'
+                        : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100'
+                    }`}
+                  >
+                    <p className="whitespace-pre-wrap">{msg.content}</p>
                   </div>
                 </div>
-              </div>
-            )}
+              ))}
+              {isLoading && (
+                <div className="flex justify-start w-full">
+                  <div className="bg-neutral-100 dark:bg-neutral-800 rounded-lg px-4 py-2">
+                    <div className="flex space-x-2">
+                      <div className="w-2 h-2 bg-neutral-400 dark:bg-neutral-500 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-neutral-400 dark:bg-neutral-500 rounded-full animate-bounce delay-100"></div>
+                      <div className="w-2 h-2 bg-neutral-400 dark:bg-neutral-500 rounded-full animate-bounce delay-200"></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-4 border-t border-neutral-200 dark:border-neutral-800 mt-auto">
+          <form onSubmit={handleSubmit} className="p-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 z-10">
             <div className="flex gap-2">
               <input
                 type="text"
