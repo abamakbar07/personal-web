@@ -15,6 +15,7 @@ export function BlogPosts() {
           }
           return 1
         })
+        .slice(0, 5) // Limit to 5 latest posts
         .map((post) => (
           <Link
             key={post.slug}
