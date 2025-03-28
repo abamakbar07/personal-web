@@ -20,7 +20,7 @@ export default function Page() {
         <h3 className="mb-8 text-2xl font-semibold tracking-tighter">
           Blogposts
         </h3>
-        <BlogPosts />
+        <BlogPosts limit={5} />
       </div>
     </section>
   );
