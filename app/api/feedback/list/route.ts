@@ -2,14 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '../../../lib/db';
 import Feedback from '../../../models/feedback';
 
+// Prevent static generation of this route
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     // Connect to the database
     await connectToDatabase();
 
     // Get the form type from the query parameter
-    const url = new URL(req.url);
-    const formType = url.searchParams.get('formType');
+    const searchParams = req.nextUrl.searchParams;
+    const formType = searchParams.get('formType');
 
     // Build query
     const query = formType ? { formType } : {};

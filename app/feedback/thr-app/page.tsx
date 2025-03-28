@@ -1,5 +1,7 @@
 import FeedbackForm from '../../components/FeedbackForm';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Islamic Trivia THR App Feedback',
   description: 'Berikan feedback untuk aplikasi Islamic Trivia THR'

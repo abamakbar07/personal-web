@@ -1,7 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+
+// Add dynamic export to prevent static generation
+export const dynamic = 'force-dynamic';
 
 interface FeedbackItem {
   _id: string;
@@ -23,7 +26,7 @@ interface FeedbackItem {
   createdAt: string;
 }
 
-export default function FeedbackAdminPage() {
+function FeedbackAdminContent() {
   const searchParams = useSearchParams();
   const formType = searchParams.get('formType') || '';
   
@@ -142,5 +145,13 @@ export default function FeedbackAdminPage() {
         ))}
       </div>
     </div>
+  );
+}
+
+export default function FeedbackAdminPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+      <FeedbackAdminContent />
+    </Suspense>
   );
 } 

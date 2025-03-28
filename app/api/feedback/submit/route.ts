@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '../../../lib/db';
 import Feedback from '../../../models/feedback';
 
+// Prevent static generation of this route
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
     // Connect to the database
