@@ -32,7 +32,8 @@
                 "description": "An interactive trivia application focused on Islamic knowledge, specially designed for Eid celebrations. This app provides an engaging way to learn about Islamic traditions and history while celebrating Eid.",
                 "imageUrl": "/images/thr-app.png",
                 "deployedUrl": "https://thr-app-2.vercel.app/",
-                "technologies": ["Next.js", "React", "Tailwind CSS", "Vercel"]
+                "technologies": ["Next.js", "React", "Tailwind CSS", "Vercel"],
+                "feedbackUrl": "/feedback/thr-app"
             }
         ]
     }

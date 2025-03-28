@@ -8,6 +8,7 @@ type Project = {
   imageUrl: string
   deployedUrl: string
   technologies: string[]
+  feedbackUrl?: string
 }
 
 export function Projects() {
@@ -43,7 +44,7 @@ export function Projects() {
                 </span>
               ))}
             </div>
-            <div className="mt-4">
+            <div className="mt-4 flex gap-4">
               <Link 
                 href={project.deployedUrl} 
                 target="_blank" 
@@ -52,6 +53,14 @@ export function Projects() {
               >
                 View Project →
               </Link>
+              {project.feedbackUrl && (
+                <Link 
+                  href={project.feedbackUrl}
+                  className="text-green-600 dark:text-green-400 hover:underline"
+                >
+                  Give Feedback →
+                </Link>
+              )}
             </div>
           </div>
         </div>
