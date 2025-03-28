@@ -21,5 +21,19 @@
     "blog": {
         "title": "My Blog",
         "description": "Read my blog."
+    },
+    "projects": {
+        "title": "My Portfolio",
+        "description": "Explore my projects and applications.",
+        "introduction": "Here are some of the projects I've built. Each one represents a unique challenge and learning experience in my journey as a developer.",
+        "items": [
+            {
+                "title": "Islamic Trivia - Eid THR App",
+                "description": "An interactive trivia application focused on Islamic knowledge, specially designed for Eid celebrations. This app provides an engaging way to learn about Islamic traditions and history while celebrating Eid.",
+                "imageUrl": "/images/thr-app.png",
+                "deployedUrl": "https://thr-app-2.vercel.app/",
+                "technologies": ["Next.js", "React", "Tailwind CSS", "Vercel"]
+            }
+        ]
     }
-} 
+}
