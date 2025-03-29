@@ -9,6 +9,11 @@ export default function Contact() {
     email: '',
     message: ''
   })
+  const [status, setStatus] = useState({
+    submitted: false,
+    submitting: false,
+    info: { error: false, msg: null as string | null }
+  })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -20,9 +25,18 @@ export default function Contact() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setStatus({
+      submitted: false,
+      submitting: true,
+      info: { error: false, msg: null }
+    })
     try {
       const response = await axios.post('/api/contact', formData)
-      console.log('Form submitted:', response.data)
+      setStatus({
+        submitted: true,
+        submitting: false,
+        info: { error: false, msg: 'Message sent successfully!' }
+      })
       // Reset form data
       setFormData({
         name: '',
@@ -30,6 +44,11 @@ export default function Contact() {
         message: ''
       })
     } catch (error) {
+      setStatus({
+        submitted: false,
+        submitting: false,
+        info: { error: true, msg: 'Something went wrong. Please try again later.' }
+      })
       console.error('Error submitting form:', error)
     }
   }
@@ -37,6 +56,13 @@ export default function Contact() {
   return (
     <section className="max-w-2xl mx-auto mt-8 px-4 sm:px-6 lg:px-8">
       <h1 className="text-3xl font-semibold mb-6 text-center">Contact Me</h1>
+      
+      {status.info.msg && (
+        <div className={`mb-6 p-4 rounded-md ${status.info.error ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+          {status.info.msg}
+        </div>
+      )}
+      
       <form className="space-y-6" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
@@ -51,6 +77,7 @@ export default function Contact() {
               onChange={handleChange}
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               required
+              disabled={status.submitting}
             />
           </div>
           <div>
@@ -65,6 +92,7 @@ export default function Contact() {
               onChange={handleChange}
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               required
+              disabled={status.submitting}
             />
           </div>
         </div>
@@ -80,14 +108,16 @@ export default function Contact() {
             rows={4}
             className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             required
+            disabled={status.submitting}
           />
         </div>
         <div className="flex justify-end">
           <button
             type="submit"
-            className="px-6 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="px-6 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+            disabled={status.submitting}
           >
-            Submit
+            {status.submitting ? 'Sending...' : 'Submit'}
           </button>
         </div>
       </form>
