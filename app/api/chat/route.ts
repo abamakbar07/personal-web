@@ -408,12 +408,31 @@ export async function POST(req: Request) {
       ],
     });
 
-    // Send the current message and get response
+    // Send the current message and stream response
     const result = await chat.sendMessage(message);
     const response = await result.response;
     const text = response.text();
 
-    return NextResponse.json({ response: text });
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for (let i = 0; i < text.length; i += 10) {
+            const chunk = text.slice(i, i + 10);
+            controller.enqueue(encoder.encode(chunk));
+            await new Promise((r) => setTimeout(r, 20));
+          }
+        } catch (err) {
+          controller.error(err);
+        } finally {
+          controller.close();
+        }
+      },
+    });
+
+    return new NextResponse(stream, {
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    });
   } catch (error) {
     console.error('Error:', error);
     return NextResponse.json(
