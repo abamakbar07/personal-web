@@ -4,6 +4,8 @@ import path from 'path';
 import matter from 'gray-matter';
 import content from '../../data/content.json';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import connectToDatabase from '../../lib/db';
+import ChatSession from '../../models/chatSession';
 
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
@@ -55,11 +57,45 @@ function getRecentPosts(limit = 3) {
     return posts.slice(0, limit);
 }
 
+export async function GET(req: Request) {
+  try {
+    await connectToDatabase();
+    const { searchParams } = new URL(req.url);
+    const sessionId = searchParams.get('sessionId');
+    if (!sessionId) {
+      return NextResponse.json({ messages: [] });
+    }
+    const session = await ChatSession.findOne({ sessionId });
+    if (!session || session.expiresAt < new Date()) {
+      return NextResponse.json({ messages: [] });
+    }
+    return NextResponse.json({ messages: session.messages });
+  } catch (error) {
+    console.error('Error:', error);
+    return NextResponse.json(
+      { error: 'Failed to load messages', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(req: Request) {
   try {
-    const { message, history } = await req.json();
+    await connectToDatabase();
+    const { message, sessionId } = await req.json();
     const recentPosts = getRecentPosts();
     const personalInfo = getPersonalInfo();
+
+    let session = await ChatSession.findOne({ sessionId });
+    if (!session) {
+      session = await ChatSession.create({ sessionId, messages: [] });
+    } else if (session.expiresAt < new Date()) {
+      session.messages = [];
+    }
+    const sessionHistory = session.messages.map((msg: any) => ({
+      role: msg.role === 'user' ? 'user' : 'model',
+      parts: [{ text: msg.content }],
+    }));
 
     // Create the context message that will be sent first
     const contextMessage = `You are Muhamad Akbar Afriansyah, a tech enthusiast, SAP Admin, and backend developer. 
@@ -401,10 +437,7 @@ export async function POST(req: Request) {
             {text: "output: Saya berusaha menjalani hidup dengan tanggung jawab, mengisi hari dengan ibadah, dan selalu ingat bahwa dunia itu sementara sementara akhirat abadi."},
           ],
         },
-        ...history.map((msg: any) => ({
-          role: msg.role === 'user' ? 'user' : 'model',
-          parts: [{ text: msg.content }],
-        }))
+        ...sessionHistory
       ],
     });
 
@@ -412,6 +445,11 @@ export async function POST(req: Request) {
     const result = await chat.sendMessage(message);
     const response = await result.response;
     const text = response.text();
+
+    session.messages.push({ role: 'user', content: message, timestamp: new Date() });
+    session.messages.push({ role: 'assistant', content: text, timestamp: new Date() });
+    session.expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24);
+    await session.save();
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
