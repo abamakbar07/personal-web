@@ -1,9 +1,9 @@
-import fs from 'fs';
-import path from 'path';
-import matter from 'gray-matter';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { createClient } from '@supabase/supabase-js';
-import content from '../app/data/content.json';
+const fs = require('fs');
+const path = require('path');
+const matter = require('gray-matter');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { createClient } = require('@supabase/supabase-js');
+const content = require('../app/data/content.json');
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
 const embeddingModel = genAI.getGenerativeModel({ model: 'text-embedding-004' });
@@ -24,8 +24,7 @@ interface Doc {
 async function embedAndStore(doc: Doc) {
   const result = await embeddingModel.embedContent(doc.content);
   const embedding = result.embedding.values || result.embedding;
-  const { error } = await supabase.from('documents').upsert({
-    id: doc.id,
+  const { error } = await supabase.from('documents').insert({
     content: doc.content,
     metadata: doc.metadata,
     embedding,

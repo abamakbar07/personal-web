@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import Markdown from 'markdown-to-jsx'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -91,10 +90,21 @@ export default function Chat() {
             )}
             <div className="max-w-[80%]">
               <div className={`rounded-lg px-4 py-2 ${m.role === 'user' ? 'bg-blue-500 text-white' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100'}`}>
-                {/* @ts-expect-error className is valid for react-markdown */}
-                <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose dark:prose-invert max-w-none">
+                <Markdown 
+                  options={{ 
+                    forceBlock: true,
+                    wrapper: 'div',
+                    overrides: {
+                      div: {
+                        props: {
+                          className: 'prose dark:prose-invert max-w-none'
+                        }
+                      }
+                    }
+                  }}
+                >
                   {m.content}
-                </ReactMarkdown>
+                </Markdown>
               </div>
               <div className="text-xs text-neutral-500 mt-1">{new Date(m.timestamp).toLocaleTimeString()}</div>
             </div>
