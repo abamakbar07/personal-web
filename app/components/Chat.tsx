@@ -137,6 +137,21 @@ export default function Chat() {
             className="flex-1 p-2 border rounded bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100"
           />
           <button
+            type="button"
+            onClick={async () => {
+              await fetch('/api/chat', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId: sessionIdRef.current })
+              });
+              setMessages([]);
+            }}
+            disabled={isStreaming || messages.length === 0}
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
+          >
+            Clear
+          </button>
+          <button
             type="submit"
             disabled={isStreaming}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
