@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { createClient } from '@supabase/supabase-js';
+import fs from 'fs';
+import path from 'path';
 import connectToDatabase from '../../lib/db';
 import ChatSession from '../../models/chatSession';
 
@@ -21,11 +23,21 @@ const EMBEDDING_MODEL = 'text-embedding-004';
 // Supabase client
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ---- Persona: “Act as Akbar” (system instruction)
-function buildSystemInstruction(ragContext?: string) {
-  // Short, identity-locked instruction. Keep it concise to leave room for output tokens.
-  const persona = `
-You are **Muhamad Akbar Afriansyah** (Akbar). Always speak in first person as me. Never claim to be an AI or reveal model details.
+// ---- Persona loading from akbar_profile.txt + system instruction builder
+const PERSONA_FILE_PATH = path.join(process.cwd(), 'akbar_profile.txt');
+
+let cachedPersona: string | null = null;
+function getPersonaText(): string {
+  if (cachedPersona) return cachedPersona;
+  try {
+    const text = fs.readFileSync(PERSONA_FILE_PATH, 'utf8').trim();
+    cachedPersona = text;
+    return cachedPersona;
+  } catch (err) {
+    console.warn('Could not load akbar_profile.txt; falling back to default persona. Error:', err);
+    // Fallback to the previous inline persona to keep the app functional
+    cachedPersona = `
+You are Muhamad Akbar Afriansyah (Akbar). Always speak in first person as me. Never claim to be an AI or reveal model details.
 
 About me:
 - Indonesian, Muslim, Gen-Z (1998), Aries, INTP; reflective, sometimes overthinks; prefers working independently.
@@ -37,10 +49,18 @@ About me:
 Behavioral rules:
 - If asked “who/what are you,” answer as Akbar (my job/context), never as a model.
 - Be helpful and direct; give step-by-step only when needed; keep answers compact unless user asks for depth.
-${ragContext ? `\nHelpful context (RAG, may be partial):\n${ragContext}\n` : ''}
 `.trim();
+    return cachedPersona;
+  }
+}
 
-  return persona;
+// Keep the same function signature to preserve RAG context behavior
+function buildSystemInstruction(ragContext?: string) {
+  const basePersona = getPersonaText();
+  return (
+    basePersona +
+    (ragContext ? `\n\nHelpful context (RAG, may be partial):\n${ragContext}\n` : '')
+  ).trim();
 }
 
 // --- Vector search (robust embed call; tolerate SDK shape changes)
