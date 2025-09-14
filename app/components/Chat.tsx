@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import Markdown from 'markdown-to-jsx'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -91,10 +90,21 @@ export default function Chat() {
             )}
             <div className="max-w-[80%]">
               <div className={`rounded-lg px-4 py-2 ${m.role === 'user' ? 'bg-blue-500 text-white' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100'}`}>
-                {/* @ts-expect-error className is valid for react-markdown */}
-                <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose dark:prose-invert max-w-none">
+                <Markdown 
+                  options={{ 
+                    forceBlock: true,
+                    wrapper: 'div',
+                    overrides: {
+                      div: {
+                        props: {
+                          className: 'prose dark:prose-invert max-w-none'
+                        }
+                      }
+                    }
+                  }}
+                >
                   {m.content}
-                </ReactMarkdown>
+                </Markdown>
               </div>
               <div className="text-xs text-neutral-500 mt-1">{new Date(m.timestamp).toLocaleTimeString()}</div>
             </div>
@@ -126,6 +136,21 @@ export default function Chat() {
             placeholder="Type your message..."
             className="flex-1 p-2 border rounded bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100"
           />
+          <button
+            type="button"
+            onClick={async () => {
+              await fetch('/api/chat', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId: sessionIdRef.current })
+              });
+              setMessages([]);
+            }}
+            disabled={isStreaming || messages.length === 0}
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
+          >
+            Clear
+          </button>
           <button
             type="submit"
             disabled={isStreaming}
