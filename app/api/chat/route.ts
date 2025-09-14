@@ -6,6 +6,9 @@ import path from 'path';
 import connectToDatabase from '../../lib/db';
 import ChatSession from '../../models/chatSession';
 
+// Ensure Node.js runtime so fs/path are allowed and ESLint doesn't flag Edge APIs
+export const runtime = 'nodejs';
+
 // --- Env checks (fail fast & clear)
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || '';
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
@@ -68,7 +71,8 @@ async function searchDocuments(query: string, k = 5) {
   try {
     const embedResult: any = await genAI
       .getGenerativeModel({ model: EMBEDDING_MODEL })
-      .embedContent({ content: { parts: [{ text: query }] } });
+      // The SDK accepts a plain string for embedding; avoids Content typing mismatch
+      .embedContent(query);
 
     const vector =
       embedResult?.embedding?.values ??
