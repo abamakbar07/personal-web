@@ -79,10 +79,19 @@ export async function POST(req: Request) {
     const context = docs.map((d: any) => d.content).join('\n---\n');
 
     const chat = model.startChat({
-      systemInstruction: `You are a helpful assistant. Use the provided context to answer the user.\n${context}`,
       history: sessionHistory,
+      generationConfig: {
+        temperature: 0.7, // Lower temperature for more focused responses
+        topP: 0.8,
+        topK: 40,
+        maxOutputTokens: 200, // Limit response length
+      }
     });
 
+    // Create a more natural conversational prompt
+    const systemPrompt = `You are a helpful and concise AI assistant. Keep your responses brief, direct, and conversational. Use the following context if relevant, but don't mention that you're using it: ${context}`;
+    await chat.sendMessage(systemPrompt);
+    
     const result = await chat.sendMessageStream(message);
     const encoder = new TextEncoder();
     let fullText = '';
